@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"runtime"
 )
@@ -15,6 +16,7 @@ func main() {
 	default:
 		log.Fatal("Sistemul de operare nu este suportat.")
 	}
+	fmt.Printf("muie")
 }
 
 //    #####		Implementare SCRIPT pentru Linux 		######
@@ -23,8 +25,9 @@ func monitorizeazaLinux() {
 
 }
 
-//    #####		Implementare SCRIPT pentru Windows 		######
-
+//	#####		Implementare SCRIPT pentru Windows 		######
+//
+// fdsssssssssssssssssss
 func monitorizeazaWindows() {
 
 }
