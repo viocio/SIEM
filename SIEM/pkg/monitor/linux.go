@@ -2,10 +2,13 @@ package monitor
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"os"
 	"strings"
+	"time"
+
+	"siem/pkg/alerta"
+	"siem/pkg/api"
 )
 
 func MonitorizeazaLinux() {
@@ -21,8 +24,13 @@ func MonitorizeazaLinux() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.Contains(line, "Failed password") {
-			fmt.Println("[ALERTĂ] Login eșuat detectat:", line) //parcurgere linie cu linie pentru verificare log esuat
-			// TODO: trimite alerta către SIEM
+			alertaNoua := alerta.Alerta{
+				Sistem:    "linux",
+				Tip:       "login_esuat",
+				Descriere: line,
+				Timestamp: time.Now().UTC().Format(time.RFC3339),
+			}
+			api.TrimiteAlerta(alertaNoua)
 		}
 	}
 
