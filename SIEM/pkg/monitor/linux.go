@@ -21,17 +21,30 @@ func MonitorizeazaLinux() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	esecuriConsecutive := 0
+	// TODO: sa faci un scan periodic la fisier, nu doar odata
+	// scanul sa inceapa de la ultima linie a fisierului
 	for scanner.Scan() {
 		line := scanner.Text()
+
 		if strings.Contains(line, "Failed password") {
+			esecuriConsecutive++
+		}
+
+		// Resetare doar la login reușit
+		if strings.Contains(line, "Accepted password") || strings.Contains(line, "session opened") {
+			esecuriConsecutive = 0
+		}
+
+		if esecuriConsecutive == 3 {
 			alertaNoua := alerta.Alerta{
 				Sistem:    "linux",
 				Tip:       "login_esuat",
-				Descriere: line,
+				Descriere: "3 loginuri eșuate consecutive",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 			}
 			api.TrimiteAlerta(alertaNoua)
-
+			break
 		}
 	}
 
