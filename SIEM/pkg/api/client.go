@@ -11,7 +11,7 @@ import (
 
 func TrimiteAlerta(a alerta.Alerta) {
 	url := "http://192.168.229.43:58917/alert" // endpoint-ul managerului
-
+	// se inlocuieste IP-ul cu IP-ul masinii pe care ruleaza managerul si portul cu portul ales in manager
 	jsonData, err := json.Marshal(a)
 	if err != nil {
 		log.Printf("Eroare la serializarea alertei: %v", err)

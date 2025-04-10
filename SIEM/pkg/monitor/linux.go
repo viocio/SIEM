@@ -12,7 +12,7 @@ import (
 )
 
 func MonitorizeazaLinux() {
-	logPath := "/var/log/auth.log" // Path catre fisierul de stocare al logurilor locale
+	logPath := "/home/apc/test_auth.log" // Path catre fisierul de stocare al logurilor locale
 
 	file, err := os.Open(logPath)
 	if err != nil {
@@ -31,6 +31,7 @@ func MonitorizeazaLinux() {
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 			}
 			api.TrimiteAlerta(alertaNoua)
+
 		}
 	}
 
