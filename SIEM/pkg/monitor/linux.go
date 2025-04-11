@@ -2,8 +2,10 @@ package monitor
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -19,46 +21,65 @@ func MonitorizeazaLinux() {
 	offset := citesteOffset(offsetPath)
 	esecuriConsecutive := 0
 	for {
-		file, err := os.Open(logPath)
-		if err != nil {
-			log.Printf("Eroare la deschiderea fișierului: %v", err)
-		} else {
-			scanner := bufio.NewScanner(file)
-			linieCurenta := 0
+		loguriLocale(offsetPath, logPath, &offset, &esecuriConsecutive)
+		loguriRemote()
+		time.Sleep(5 * time.Second) // se execută indiferent dacă a fost eroare sau nu
+	}
+}
 
-			for scanner.Scan() {
-				linieCurenta++
-				if linieCurenta <= offset {
-					continue
-				}
+func loguriRemote() {
+	cmd := exec.Command("ss", "-tp")
+	output, err := cmd.Output()
+	if err != nil {
+		log.Println("Eroare la ss -tp", err)
+		return
+	}
+	linii := strings.Split(string(output), "\n")
+	for _, linie := range linii {
+		_ = linie
+	}
 
-				line := scanner.Text()
+	fmt.Println("Gata sefu")
+}
 
-				if strings.Contains(line, "Failed password") {
-					esecuriConsecutive++
-				} else if strings.Contains(line, "Accepted password") || strings.Contains(line, "session opened") {
-					esecuriConsecutive = 0
-				}
+func loguriLocale(offsetPath string, logPath string, offset *int, esecuriConsecutive *int) {
+	file, err := os.Open(logPath)
+	if err != nil {
+		log.Printf("Eroare la deschiderea fișierului: %v", err)
+	} else {
+		scanner := bufio.NewScanner(file)
+		linieCurenta := 0
 
-				if esecuriConsecutive == 3 {
-					alertaNoua := alerta.Alerta{
-						Sistem:    "linux",
-						Tip:       "login_esuat",
-						Descriere: "3 loginuri eșuate consecutive",
-						Timestamp: time.Now().UTC().Format(time.RFC3339),
-					}
-					api.TrimiteAlerta(alertaNoua)
-					esecuriConsecutive = 0
-				}
+		for scanner.Scan() {
+			linieCurenta++
+			if linieCurenta <= *offset {
+				continue
 			}
 
-			offset = linieCurenta
-			salveazaOffset(offsetPath, offset)
+			line := scanner.Text()
 
-			file.Close()
+			if strings.Contains(line, "Failed password") {
+				*esecuriConsecutive++
+			} else if strings.Contains(line, "Accepted password") || strings.Contains(line, "session opened") {
+				*esecuriConsecutive = 0
+			}
+
+			if *esecuriConsecutive == 3 {
+				alertaNoua := alerta.Alerta{
+					Sistem:    "linux",
+					Tip:       "login_esuat",
+					Descriere: "3 loginuri eșuate consecutive",
+					Timestamp: time.Now().UTC().Format(time.RFC3339),
+				}
+				api.TrimiteAlerta(alertaNoua)
+				*esecuriConsecutive = 0
+			}
 		}
 
-		time.Sleep(5 * time.Second) // se execută indiferent dacă a fost eroare sau nu
+		*offset = linieCurenta
+		salveazaOffset(offsetPath, *offset)
+
+		defer file.Close()
 	}
 }
 
