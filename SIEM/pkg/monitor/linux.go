@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -12,43 +13,69 @@ import (
 )
 
 func MonitorizeazaLinux() {
-	logPath := "/home/apc/test_auth.log" // Path catre fisierul de stocare al logurilor locale
+	logPath := "/home/apc/test_auth.log"
+	offsetPath := "/home/apc/offset.txt"
 
-	file, err := os.Open(logPath)
-	if err != nil {
-		log.Fatalf("Eroare la deschiderea fișierului %s: %v", logPath, err) // gestionare eroare
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
+	offset := citesteOffset(offsetPath)
 	esecuriConsecutive := 0
-	// TODO: sa faci un scan periodic la fisier, nu doar odata
-	// scanul sa inceapa de la ultima linie a fisierului
-	for scanner.Scan() {
-		line := scanner.Text()
+	for {
+		file, err := os.Open(logPath)
+		if err != nil {
+			log.Printf("Eroare la deschiderea fișierului: %v", err)
+		} else {
+			scanner := bufio.NewScanner(file)
+			linieCurenta := 0
 
-		if strings.Contains(line, "Failed password") {
-			esecuriConsecutive++
-		}
+			for scanner.Scan() {
+				linieCurenta++
+				if linieCurenta <= offset {
+					continue
+				}
 
-		// Resetare doar la login reușit
-		if strings.Contains(line, "Accepted password") || strings.Contains(line, "session opened") {
-			esecuriConsecutive = 0
-		}
+				line := scanner.Text()
 
-		if esecuriConsecutive == 3 {
-			alertaNoua := alerta.Alerta{
-				Sistem:    "linux",
-				Tip:       "login_esuat",
-				Descriere: "3 loginuri eșuate consecutive",
-				Timestamp: time.Now().UTC().Format(time.RFC3339),
+				if strings.Contains(line, "Failed password") {
+					esecuriConsecutive++
+				} else if strings.Contains(line, "Accepted password") || strings.Contains(line, "session opened") {
+					esecuriConsecutive = 0
+				}
+
+				if esecuriConsecutive == 3 {
+					alertaNoua := alerta.Alerta{
+						Sistem:    "linux",
+						Tip:       "login_esuat",
+						Descriere: "3 loginuri eșuate consecutive",
+						Timestamp: time.Now().UTC().Format(time.RFC3339),
+					}
+					api.TrimiteAlerta(alertaNoua)
+					esecuriConsecutive = 0
+				}
 			}
-			api.TrimiteAlerta(alertaNoua)
-			break
-		}
-	}
 
-	if err := scanner.Err(); err != nil {
-		log.Fatalf("Eroare la citirea fișierului: %v", err)
+			offset = linieCurenta
+			salveazaOffset(offsetPath, offset)
+
+			file.Close()
+		}
+
+		time.Sleep(5 * time.Second) // se execută indiferent dacă a fost eroare sau nu
 	}
+}
+
+// ✅ Citește offsetul din fișier (dacă există)
+func citesteOffset(cale string) int {
+	data, err := os.ReadFile(cale)
+	if err != nil {
+		return 0
+	}
+	offset, err := strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil {
+		return 0
+	}
+	return offset
+}
+
+// ✅ Salvează offsetul curent într-un fișier
+func salveazaOffset(cale string, offset int) {
+	_ = os.WriteFile(cale, []byte(strconv.Itoa(offset)), 0644)
 }
