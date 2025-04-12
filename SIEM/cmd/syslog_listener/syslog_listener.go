@@ -21,6 +21,9 @@ func main() {
 
 	buffer := make([]byte, 4096)
 	n, _, err := conn.ReadFromUDP(buffer)
+	if err != nil {
+		fmt.Printf("Ai o problema la citirea datelor din jurnal: %s", err)
+	}
 
 	mesaj := string(buffer[:n])
 	syslog := parser.SyslogParsing(mesaj)
