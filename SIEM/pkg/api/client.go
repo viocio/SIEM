@@ -10,7 +10,7 @@ import (
 )
 
 func TrimiteAlerta(a alerta.Alerta) { // in Golang parametrii unei functii se scriu dupa tiparul : <nume_param> <tip_de_date>
-	url := "http://192.168.229.43:58917/alert" // endpoint-ul managerului
+	url := "http://192.168.50.96:58917/alert" // endpoint-ul managerului
 	// se inlocuieste IP-ul cu IP-ul masinii pe care ruleaza managerul si portul cu portul ales in manager
 	jsonData, err := json.Marshal(a)
 	if err != nil {
