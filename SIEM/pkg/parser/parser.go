@@ -6,6 +6,7 @@ import (
 )
 
 type SyslogMessage struct {
+	Prival    string
 	Timestamp string
 	Hostname  string
 	Program   string
@@ -13,18 +14,31 @@ type SyslogMessage struct {
 }
 
 func SyslogParsing(linie string) SyslogMessage {
-	parts := strings.SplitN(linie, " ", 5)
+	prival := ""
+
+	// Dacă linia începe cu < și are un > în primele 6 caractere, extragem <PRI>
+	if strings.HasPrefix(linie, "<") {
+		index := strings.Index(linie, ">")
+		if index != -1 && index < 6 {
+			prival = linie[1:index]                    // extragem valoarea fără < >
+			linie = strings.TrimSpace(linie[index+1:]) // eliminăm <PRI> din linie
+		}
+	}
+	fmt.Println(linie)
+	// Split în maxim 5 părți
+	parts := strings.SplitN(linie, " ", 6)
 
 	if len(parts) < 5 {
-		fmt.Printf("Linie prea scruta pentru a fi parsata: %s", linie)
+		fmt.Printf("Linie prea scurtă pentru a fi parsată: %s\n", linie)
 		return SyslogMessage{}
 	}
 
 	mesaj := SyslogMessage{
-		Timestamp: parts[0] + " " + parts[1],
-		Hostname:  parts[2],
-		Program:   parts[3],
-		Message:   parts[4],
+		Prival:    prival,
+		Timestamp: parts[0] + " " + parts[1] + " " + parts[2],
+		Hostname:  parts[3],
+		Program:   strings.TrimSuffix(parts[4], ":"), // curățăm `:`
+		Message:   parts[5],
 	}
 
 	return mesaj

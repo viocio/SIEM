@@ -5,9 +5,11 @@ import (
 	"net"
 
 	"siem/pkg/parser"
+	"siem/pkg/storage"
 )
 
 func main() {
+
 	addr := net.UDPAddr{
 		Port: 514,
 		IP:   net.ParseIP("0.0.0.0"),
@@ -27,5 +29,6 @@ func main() {
 
 	mesaj := string(buffer[:n])
 	syslog := parser.SyslogParsing(mesaj)
+	storage.SalveazaSyslog(syslog)
 	fmt.Printf("Acesta este jurnalul: %v", syslog)
 }
