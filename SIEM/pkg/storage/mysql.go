@@ -49,7 +49,7 @@ func SalveazaSyslog(mesaj parser.SyslogMessage) {
 	}
 
 	_, err := DB.Exec(
-		`INSERT INTO syslog (prival, timestamp, hostname, program, message) VALUES (?, ?, ?, ?)`,
+		`INSERT INTO syslog (prival, timestamp, hostname, program, message) VALUES (?, ?, ?, ?, ?)`,
 		mesaj.Prival, mesaj.Timestamp, mesaj.Hostname, mesaj.Program, mesaj.Message,
 	)
 	if err != nil {
