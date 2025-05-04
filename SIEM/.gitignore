@@ -1,4 +1,5 @@
 # 🔒 BAZE DE DATE / CONFIGURĂRI SENSIBILE
+
 SIEM/mysql/
 /sysloguri.db
 *.sql
