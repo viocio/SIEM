@@ -1,15 +1,13 @@
 package detectie
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
-	"strings"
 	"time"
 
 	"siem/pkg/alerta"
 	"siem/pkg/api"
+	"siem/pkg/blacklist"
 	"siem/pkg/storage"
 )
 
@@ -38,7 +36,7 @@ func BruteForce() {
 	for rows.Next() {
 		var msg string
 		rows.Scan(&msg)
-		ip := extractIP(msg)
+		ip := blacklist.ExtractIP(msg)
 		if ip != "" {
 			ipCount[ip]++
 		}
@@ -53,55 +51,7 @@ func BruteForce() {
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 			}
 			api.TrimiteAlerta(alertaNoua)
-			adaugaLaBlacklist(ip)
+			blacklist.AdaugaLaBlacklist(ip)
 		}
 	}
-}
-
-func extractIP(message string) string {
-	words := strings.Split(message, " ")
-	for i, word := range words {
-		if word == "from" && i+1 < len(words) {
-			return words[i+1]
-		}
-	}
-	return ""
-}
-
-func adaugaLaBlacklist(ip string) {
-	path := "blacklist.txt"
-
-	// Verificăm dacă IP-ul e deja în blacklist
-	if alreadyBlacklisted(ip, path) {
-		return
-	}
-
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println("[BLACKLIST] Eroare la deschidere blacklist.txt:", err)
-		return
-	}
-	defer f.Close()
-
-	if _, err := f.WriteString(ip + "\n"); err != nil {
-		log.Println("[BLACKLIST] Eroare la scriere:", err)
-	} else {
-		log.Printf("[BLACKLIST] IP %s adăugat în blacklist.txt\n", ip)
-	}
-}
-
-func alreadyBlacklisted(ip, path string) bool {
-	f, err := os.Open(path)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		if scanner.Text() == ip {
-			return true
-		}
-	}
-	return false
 }
