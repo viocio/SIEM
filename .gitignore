@@ -1,0 +1,27 @@
+# Ignorare fișiere și foldere generate local
+SIEM/mysql/
+SIEM/blacklist.txt
+SIEM/cmd/blacklist_server/blacklist.txt
+
+# Ignorare binare sau execuții
+*.exe
+*.out
+*.log
+*.pdb
+*.bak
+
+# Fisiere de backup sau swap
+*~
+*.swp
+
+# VSCode & Goland
+.vscode/
+.idea/
+
+# Ignorare builduri temporare
+bin/
+build/
+
+# Ignorare outputuri Go
+SIEM/**/*.test
+SIEM/**/go.sum
