@@ -59,7 +59,6 @@ func verificaIntegritatea() {
 	}
 }
 
-
 func loguriRemote() {
 	data, err := os.ReadFile("/home/apc/test_ss.txt")
 	// cmd := exec.Command("ss", "-tp")
@@ -93,14 +92,14 @@ func loguriRemote() {
 			}
 			api.TrimiteAlerta(alertaNoua)
 		} else if scor >= pragAleta {
-			alertaNoua := alerta.Alerta {
+			alertaNoua := alerta.Alerta{
 				Sistem:    "linux",
 				Tip:       "remote_acces",
 				Descriere: "Posibila conexiune remote",
 				Timestamp: time.Now().UTC().Format(time.RFC3339),
 			}
 			api.TrimiteAlerta(alertaNoua)
-		}	
+		}
 	}
 }
 
@@ -210,7 +209,7 @@ func loguriLocale(offsetPath string, logPath string, offset *int, esecuriConsecu
 	}
 }
 
-// ✅ Citește offsetul din fișier (dacă există)
+// Citește offsetul din fișier (dacă există)
 func citesteOffset(cale string) int {
 	data, err := os.ReadFile(cale)
 	if err != nil {
@@ -223,7 +222,7 @@ func citesteOffset(cale string) int {
 	return offset
 }
 
-// ✅ Salvează offsetul curent într-un fișier
+// Salvează offsetul curent într-un fișier
 func salveazaOffset(cale string, offset int) {
 	_ = os.WriteFile(cale, []byte(strconv.Itoa(offset)), 0644)
 }
