@@ -3,13 +3,12 @@ package detectie
 import (
 	"log"
 	"regexp"
-	"strings"
-	"time"
-
 	"siem/pkg/alerta"
 	"siem/pkg/api"
 	"siem/pkg/blacklist"
 	"siem/pkg/storage"
+	"strings"
+	"time"
 )
 
 func PortScan() {
@@ -21,7 +20,7 @@ func PortScan() {
 
 	query := `
 		SELECT message FROM syslog
-		WHERE timestamp >= NOW() - INTERVAL 1 MINUTE
+		WHERE timestamp < NOW() 
 	`
 
 	rows, err := db.Query(query)
@@ -45,6 +44,7 @@ func PortScan() {
 			strings.Contains(lower, "port scan") ||
 			strings.Contains(lower, "probing") {
 			ipuri := ipRegex.FindAllString(msg, -1)
+
 			if len(ipuri) > 0 {
 				ip := ipuri[0]
 				count[ip]++
@@ -52,7 +52,7 @@ func PortScan() {
 		}
 	}
 
-	prag := 10
+	prag := 5
 	for ip, nr := range count {
 		if nr >= prag {
 			alertaNoua := alerta.Alerta{

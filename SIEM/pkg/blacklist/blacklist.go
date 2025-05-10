@@ -2,6 +2,7 @@ package blacklist
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -10,7 +11,7 @@ import (
 func ExtractIP(message string) string {
 	words := strings.Split(message, " ")
 	for i, word := range words {
-		if word == "from" && i+1 < len(words) {
+		if word == "to" && i+1 < len(words) {
 			return words[i+1]
 		}
 	}
@@ -24,10 +25,10 @@ func AdaugaLaBlacklist(ip string) {
 	if alreadyBlacklisted(ip, path) {
 		return
 	}
-
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	fmt.Println("sunt in fct blacklist")
+	f, err := os.OpenFile(path, os.O_APPEND, 0644)
 	if err != nil {
-		log.Println("[BLACKLIST] Eroare la deschidere blacklist.txt:", err)
+		fmt.Println("[BLACKLIST] Eroare la deschidere blacklist.txt:", err)
 		return
 	}
 	defer f.Close()
@@ -40,17 +41,18 @@ func AdaugaLaBlacklist(ip string) {
 }
 
 func alreadyBlacklisted(ip, path string) bool {
-	f, err := os.Open(path)
+	f, err := os.Open("D:/Facultate/Anul III/Sem II/TPI/SIEM/blacklist.txt")
 	if err != nil {
 		return false
 	}
-	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
+
 	for scanner.Scan() {
 		if scanner.Text() == ip {
 			return true
 		}
 	}
+	defer f.Close()
 	return false
 }

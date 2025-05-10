@@ -5,26 +5,44 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"siem/pkg/alerta"
 	"siem/pkg/detectie"
+	"siem/pkg/storage"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load("SIEM/.env")
+	if err != nil {
+		log.Fatal("Eroare la încărcarea fișierului .env")
+	}
+
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASS")
+	db := os.Getenv("DB_NAME")
+
+	storage.InitDB(user, pass, db)
+	http.HandleFunc("/alert", primesteAlerta)
 	go ruleazaDetectii()
-	http.HandleFunc("/alert", primesteAlerta) // ii spui managerului ce functie sa apeleze daca primeste trafic pe ruta alert
 
 	port := ":58917"
 	fmt.Println("[+] Managerul ascultă pe http://localhost" + port)
 	log.Fatal(http.ListenAndServe(port, nil))
+
 }
 
 func ruleazaDetectii() {
-	detectie.BruteForce()
-	detectie.Exfiltrare()
-	detectie.PortScan()
-	time.Sleep(10 * time.Second)
+	for {
+		detectie.BruteForce()
+		detectie.Exfiltrare()
+		detectie.PortScan()
+		time.Sleep(10 * time.Second)
+		fmt.Println("slaut")
+	}
 }
 
 func primesteAlerta(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +63,7 @@ func primesteAlerta(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("  Sistem   :", a.Sistem)
 	fmt.Println(" Tip       :", a.Tip)
 	fmt.Println(" Detalii   :", a.Descriere)
-	fmt.Println("⏱  Timp      :", a.Timestamp)
+	fmt.Println(" Timp      :", a.Timestamp)
 	fmt.Println("==============================================")
 
 	w.WriteHeader(http.StatusOK)

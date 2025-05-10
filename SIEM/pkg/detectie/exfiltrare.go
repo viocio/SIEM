@@ -1,12 +1,14 @@
 package detectie
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"siem/pkg/alerta"
 	"siem/pkg/api"
+	"siem/pkg/blacklist"
 	"siem/pkg/storage"
 )
 
@@ -26,21 +28,21 @@ func Exfiltrare() {
 		"unknown outbound connection",
 	}
 
-	query := `
-		SELECT timestamp, hostname, program, message FROM syslog
-		WHERE timestamp >= NOW() - INTERVAL 1 MINUTE
-	`
-
-	rows, err := db.Query(query)
+	rows, err := db.Query(`
+	SELECT prival, timestamp, hostname, program, message 
+	FROM syslog
+	WHERE timestamp < NOW() 
+	`)
 	if err != nil {
 		log.Println("[EXFIL] Eroare la interogarea bazei de date:", err)
 		return
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
-		var timestamp, hostname, program, message string
-		err := rows.Scan(&timestamp, &hostname, &program, &message)
+		var prival, timestamp, hostname, program, message string
+		err := rows.Scan(&prival, &timestamp, &hostname, &program, &message)
 		if err != nil {
 			continue
 		}
@@ -54,6 +56,11 @@ func Exfiltrare() {
 					Descriere: "Posibilă exfiltrare de date: " + message,
 					Timestamp: time.Now().UTC().Format(time.RFC3339),
 				}
+				fmt.Println(lowerMsg)
+				ip := blacklist.ExtractIP(lowerMsg)
+
+				blacklist.AdaugaLaBlacklist(ip)
+				fmt.Println(ip)
 				api.TrimiteAlerta(alertaNoua)
 				break
 			}

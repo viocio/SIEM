@@ -18,7 +18,7 @@ func main() {
 	flag.Parse()
 
 	if *keyword == "" {
-		log.Fatal("⚠️  Folosește -k <keyword> pentru a căuta.")
+		log.Fatal("Folosește -k <keyword> pentru a căuta.")
 	}
 
 	storage.InitDB(*user, *pass, *dbname)
