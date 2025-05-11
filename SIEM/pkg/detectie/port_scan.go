@@ -20,7 +20,7 @@ func PortScan() {
 
 	query := `
 		SELECT message FROM syslog
-		WHERE timestamp < NOW() 
+		WHERE timestamp >= NOW() - interval 1 minute;
 	`
 
 	rows, err := db.Query(query)
@@ -30,7 +30,6 @@ func PortScan() {
 	}
 	defer rows.Close()
 
-	count := make(map[string]int)
 	ipRegex := regexp.MustCompile(`\b(?:\d{1,3}\.){3}\d{1,3}\b`)
 
 	for rows.Next() {
@@ -41,29 +40,22 @@ func PortScan() {
 
 		lower := strings.ToLower(msg)
 		if strings.Contains(lower, "connection attempt") ||
-			strings.Contains(lower, "port scan") ||
-			strings.Contains(lower, "probing") {
-			ipuri := ipRegex.FindAllString(msg, -1)
+			strings.Contains(lower, "probing") ||
+			strings.Contains(lower, "port scan") {
 
+			ipuri := ipRegex.FindAllString(msg, -1)
 			if len(ipuri) > 0 {
 				ip := ipuri[0]
-				count[ip]++
-			}
-		}
-	}
 
-	prag := 5
-	for ip, nr := range count {
-		if nr >= prag {
-			alertaNoua := alerta.Alerta{
-				Sistem:    "reteaua",
-				Tip:       "port_scan",
-				Descriere: "Detectat port scanning de la IP: " + ip,
-				Timestamp: time.Now().UTC().Format(time.RFC3339),
+				alertaNoua := alerta.Alerta{
+					Sistem:    "reteaua",
+					Tip:       "port_scan",
+					Descriere: "Detectat port scanning de la IP: " + ip,
+					Timestamp: time.Now().UTC().Format(time.RFC3339),
+				}
+				api.TrimiteAlerta(alertaNoua)
+				blacklist.AdaugaLaBlacklist(ip)
 			}
-			api.TrimiteAlerta(alertaNoua)
-
-			blacklist.AdaugaLaBlacklist(ip)
 		}
 	}
 }

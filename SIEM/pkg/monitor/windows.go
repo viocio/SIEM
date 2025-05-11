@@ -15,7 +15,6 @@ import (
 )
 
 func MonitorizeazaWindows() {
-	fmt.Println("Funcția pentru Windows nu este încă implementată.")
 
 	for {
 		loguriLocaleWindows()
@@ -27,9 +26,9 @@ func MonitorizeazaWindows() {
 
 func loguriLocaleWindows() {
 	cmd := exec.Command("powershell", "-Command", `
-		Get-WinEvent -LogName Security -MaxEvents 100 |
-		Where-Object { $_.Id -eq 4625 -or $_.Id -eq 4624 } |
-		Select-Object -ExpandProperty Id
+	Get-WinEvent -LogName MyLog -MaxEvents 100 |
+	Where-Object { $_.Id -eq 4625 } |
+	Select-Object -ExpandProperty Id
 	`)
 
 	var out bytes.Buffer
@@ -157,7 +156,7 @@ func extragePort(linie string) string {
 func verificaIntegritateaWindows() {
 	fisiere := []string{
 		`C:\Windows\System32\drivers\etc\hosts`,
-		`C:\Users\Public\Start Menu\Programs\Startup`,
+		`C:\Users\viore\Start Menu\Programs\Startup`,
 		`C:\Windows\System32\config\SAM`,    // user accounts DB
 		`C:\Windows\System32\config\SYSTEM`, // registry
 		`C:\Windows\System32\Tasks`,         // task scheduler

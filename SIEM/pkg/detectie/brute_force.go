@@ -21,7 +21,7 @@ func BruteForce() {
 	query := `
         SELECT message FROM syslog
         WHERE (message LIKE '%Failed password%' OR message LIKE '%authentication failure%')
-        AND timestamp < NOW();
+        AND timestamp >= NOW() - Interval 1 minute;
     `
 
 	rows, err := db.Query(query)
@@ -37,7 +37,6 @@ func BruteForce() {
 		var msg string
 		rows.Scan(&msg)
 		ip := blacklist.ExtractIP(msg)
-		fmt.Println(ip)
 		if ip != "" {
 			ipCount[ip]++
 		}

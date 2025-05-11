@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("SIEM/.env")
+	err := godotenv.Load("cmd/manager/.env")
 	if err != nil {
 		log.Fatal("Eroare la încărcarea fișierului .env")
 	}
@@ -41,7 +41,6 @@ func ruleazaDetectii() {
 		detectie.Exfiltrare()
 		detectie.PortScan()
 		time.Sleep(10 * time.Second)
-		fmt.Println("slaut")
 	}
 }
 

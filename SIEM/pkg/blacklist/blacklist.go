@@ -11,7 +11,7 @@ import (
 func ExtractIP(message string) string {
 	words := strings.Split(message, " ")
 	for i, word := range words {
-		if word == "to" && i+1 < len(words) {
+		if (word == "to" || word == "from") && i+1 < len(words) {
 			return words[i+1]
 		}
 	}
@@ -25,7 +25,6 @@ func AdaugaLaBlacklist(ip string) {
 	if alreadyBlacklisted(ip, path) {
 		return
 	}
-	fmt.Println("sunt in fct blacklist")
 	f, err := os.OpenFile(path, os.O_APPEND, 0644)
 	if err != nil {
 		fmt.Println("[BLACKLIST] Eroare la deschidere blacklist.txt:", err)

@@ -31,7 +31,7 @@ func Exfiltrare() {
 	rows, err := db.Query(`
 	SELECT prival, timestamp, hostname, program, message 
 	FROM syslog
-	WHERE timestamp < NOW() 
+	WHERE timestamp >= NOW() - Interval 1 minute;
 	`)
 	if err != nil {
 		log.Println("[EXFIL] Eroare la interogarea bazei de date:", err)
@@ -60,7 +60,6 @@ func Exfiltrare() {
 				ip := blacklist.ExtractIP(lowerMsg)
 
 				blacklist.AdaugaLaBlacklist(ip)
-				fmt.Println(ip)
 				api.TrimiteAlerta(alertaNoua)
 				break
 			}
